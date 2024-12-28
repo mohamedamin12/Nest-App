@@ -124,4 +124,13 @@ export class UsersController {
   // removeProfileImage(@GetMeUser() payload: JwtPayloadType){
   //   return this.usersService.removeImage(payload.id);
   // }
+
+    //* Get: ~/api/users/verify-email/:id/:verifictionToken
+    @Get("verify-email/:id/:verifictionToken")
+    verifyEmailToken(
+      @Param('id', ParseIntPipe) id: number,
+      @Param('verifictionToken') verifictionToken: string,
+    ){
+      return this.usersService.verifyEmail(id , verifictionToken)
+    }
 }

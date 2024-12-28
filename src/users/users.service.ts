@@ -9,7 +9,7 @@ import { User } from './users.entity';
 import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dtos/register-user-dto';
 import { LoginUserDto } from './dtos/login-user.dto';
-import { JwtPayloadType, AccessTokenType } from 'src/utils/types';
+import { JwtPayloadType } from 'src/utils/types';
 import { UserType } from 'src/utils/enum';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { AuthProvider } from './auth.provider';
@@ -21,7 +21,6 @@ import { unlinkSync } from 'fs';
 export class UsersServices {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-
     private readonly authProvider: AuthProvider,
   ) {}
 
@@ -30,7 +29,7 @@ export class UsersServices {
    * @param registerUser data for creating a new user
    * @returns JWt (access token)
    */
-  async register(registerUser: RegisterUserDto): Promise<AccessTokenType> {
+  async register(registerUser: RegisterUserDto) {
     return this.authProvider.register(registerUser);
   }
 
@@ -39,7 +38,7 @@ export class UsersServices {
    * @param loginUser data for login user
    * @returns JWt (access token)
    */
-  async login(loginUser: LoginUserDto): Promise<AccessTokenType> {
+  async login(loginUser: LoginUserDto) {
     return this.authProvider.login(loginUser);
   }
 
@@ -122,5 +121,27 @@ export class UsersServices {
 
     user.profileImage = null;
     return this.userRepository.save(user);
+  }
+/**
+ * verify email
+ * @param userId id of the user from the link
+ * @param verifictionToken verification token from the link
+ * @returns success message
+ */
+  async verifyEmail(userId : number , verifictionToken : string){
+    const user = await this.getMe(userId);
+
+    if(user.verifictionToken === null)
+      throw new NotFoundException('there no verifiction token ');
+
+    if (user.verifictionToken !== verifictionToken)
+      throw new NotFoundException('invalid link');
+
+    user.isAccountVerified = true;
+    user.verifictionToken = null;
+
+    await this.userRepository.save(user);
+
+    return { message : "your email has been verified , please log in to your account "}
   }
 }
